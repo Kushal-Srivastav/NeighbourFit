@@ -3,6 +3,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 const navItems = [
+  { label: "Find Your Neighborhood", href: "/matching" },
   { label: "Review Your Area", href: "/review" },
   { label: "Find Places to Live", href: "/find" },
   { label: "Rankings", href: "/rankings" },

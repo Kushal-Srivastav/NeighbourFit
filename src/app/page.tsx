@@ -1,7 +1,16 @@
 
-import HeroSection from "@/components/HeroSection";
+
+
 import Image from "next/image";
-import { FaCheckCircle } from "react-icons/fa";
+import { FaMapMarkerAlt, FaGraduationCap, FaDollarSign, FaClock } from "react-icons/fa";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+const heroImages = [
+  "/images/neighborhood_pic2.avif",
+  "/images/neighborhood_pic3.avif",
+  "/images/neighborhood_pic4.avif",
+];
 
 const features = [
   "Personalized neighborhood matching",
@@ -14,60 +23,172 @@ const features = [
 
 export default function Home() {
   return (
-    <>
-      <HeroSection />
-      {/* New To NeighborFit Section with Features - Background image */}
-      <section
-        className="w-full flex flex-col md:flex-row justify-center items-stretch py-16 px-4 md:px-0 gap-12 md:gap-24 relative overflow-hidden"
-        style={{ minHeight: 400 }}
-      >
-        {/* Background image and overlay */}
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src="/images/photo-1578163883439-fe475746b7a7.avif"
-            alt="Houses in a neighborhood"
-            fill
-            className="object-cover w-full h-full"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-stone-100 to-stone-200 opacity-50" />
-        </div>
-        <div className="flex-1 flex flex-col justify-center items-start max-w-md mx-auto md:mx-0 p-0 mb-8 md:mb-0" data-aos="fade-right">
-          <span className="text-2xl font-bold mb-4 text-stone-700">New To NeighborFit?</span>
-          <p className="text-gray-800 mb-6">Discover your ideal living space with NeighborFit. Sign up to get personalized neighborhood recommendations, access detailed area reviews, and find valuable resources for making your next move.</p>
-          <a href="/signup" className="px-6 py-3 bg-stone-700 text-white rounded-full font-semibold shadow hover:bg-stone-800 transition-colors text-lg mb-2">Create Your Account</a>
-        </div>
-        <div className="flex-1 flex flex-col justify-center items-start max-w-xl mx-auto md:mx-0 p-0" data-aos="fade-left">
-          <h2 className="text-xl font-bold mb-4 text-stone-700">What NeighborFit Provides:</h2>
-          <ul className="space-y-4 text-gray-800">
-            {features.map((feature, idx) => (
-              <li key={idx} className="flex items-center text-gray-800 text-lg">
-                <FaCheckCircle className="mr-3 text-stone-700" />
-                {feature}
-              </li>
-            ))}
-          </ul>
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 opacity-90"></div>
+        <div className="relative container mx-auto px-4 py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-200">
+              Find Your Perfect Neighborhood
+            </h1>
+            <p className="text-xl md:text-2xl text-white/90 mb-8">
+              Discover the perfect place to call home based on your lifestyle, budget, and needs
+            </p>
+            <Link href="/matching">
+              <Button className="bg-blue-600 text-white hover:bg-blue-700 px-8 py-3 text-lg">
+                Get Started
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
-      {/* Third Section: Why Choose NeighborFit */}
-      <section className="w-full py-16 px-4 md:px-8 relative overflow-hidden" data-aos="fade-left">
-        {/* Background image and overlay */}
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src="/images/premium_photo-1742461227377-09f3d92c8275.avif"
-            alt="Neighborhood background"
-            fill
-            className="object-cover w-full h-full"
-            priority
-          />
-          {/* Optional: Add an overlay if needed for text readability */}
-          <div className="absolute inset-0 bg-black opacity-30" />
-        </div>
-        <div className="container mx-auto text-center max-w-4xl relative z-10 text-gray-100">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-12 text-white">
-            Discover Your Dream Neighborhood. <span className="text-stone-200">Without the Headache.</span>
-          </h2>
 
+      {/* Key Features Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Why Choose NeighborFit</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              We help you find the perfect neighborhood that fits your lifestyle and budget
+            </p>
+          </div>
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
+                <FaMapMarkerAlt className="text-3xl text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Location Analysis</h3>
+              <p className="text-gray-600">
+                Detailed neighborhood insights including safety scores, commute times, and local amenities
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
+                <FaGraduationCap className="text-3xl text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">School Ratings</h3>
+              <p className="text-gray-600">
+                Comprehensive school district information and ratings for every neighborhood
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
+                <FaDollarSign className="text-3xl text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Market Insights</h3>
+              <p className="text-gray-600">
+                Real estate market trends, price ranges, and investment opportunities
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
+                <FaClock className="text-3xl text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Quick Results</h3>
+              <p className="text-gray-600">
+                Get personalized neighborhood recommendations in minutes
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">How It Works</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Simple steps to find your perfect neighborhood
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-6">
+                <span className="text-2xl font-bold">1</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Set Your Preferences</h3>
+              <p className="text-gray-600">
+                Tell us about your ideal neighborhood - budget, commute time, amenities, and more
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-6">
+                <span className="text-2xl font-bold">2</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Get Recommendations</h3>
+              <p className="text-gray-600">
+                Our algorithm matches you with neighborhoods that fit your lifestyle and needs
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-6">
+                <span className="text-2xl font-bold">3</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Explore & Decide</h3>
+              <p className="text-gray-600">
+                View detailed neighborhood profiles, read resident reviews, and make an informed decision
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Real Resident Reviews</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Hear from people who live in these neighborhoods
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center text-white">
+                    <span className="font-bold text-2xl">J</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-xl mb-2">John D.</h3>
+                  <p className="text-gray-600 mb-4">
+                    "The neighborhood is safe, friendly, and has great schools. Perfect for families."
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
+                    <span className="text-sm text-gray-500">5.0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center text-white">
+                    <span className="font-bold text-2xl">M</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-xl mb-2">Mary S.</h3>
+                  <p className="text-gray-600 mb-4">
+                    "Perfect location for young professionals. Great restaurants and nightlife."
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <span className="text-yellow-400">⭐⭐⭐⭐</span>
+                    <span className="text-sm text-gray-500">4.5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 md:gap-8 text-left">
             {/* Column 1: No extra work */}
             <div className="p-0">
@@ -87,6 +208,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
