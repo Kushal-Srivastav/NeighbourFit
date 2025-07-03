@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { mockPrisma as prisma } from '@/lib/mock-prisma';
@@ -6,6 +7,40 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { UserPreference, Neighborhood, Match, Review } from '@/types';
+
+const MOCK_REVIEWS = [
+  {
+    reviewer: "Alex P.",
+    review: "Great community and lots of parks nearby!",
+    rating: 5
+  },
+  {
+    reviewer: "Sam R.",
+    review: "Quiet, safe, but a bit far from downtown.",
+    rating: 4
+  },
+  {
+    reviewer: "Priya S.",
+    review: "Amazing schools and friendly neighbors.",
+    rating: 5
+  },
+  {
+    reviewer: "Chris L.",
+    review: "Affordable and close to public transport.",
+    rating: 4
+  }
+];
+
+function getMockRating(name: string) {
+  // Deterministically generate a rating based on name
+  return 3 + (name.charCodeAt(0) % 3);
+}
+
+function getMockReviews(name: string) {
+  // Pick 2 random reviews for each neighborhood
+  const idx = name.charCodeAt(1) % (MOCK_REVIEWS.length - 1);
+  return [MOCK_REVIEWS[idx], MOCK_REVIEWS[(idx + 1) % MOCK_REVIEWS.length]];
+}
 
 export default function MatchingPage() {
   const router = useRouter();
@@ -24,6 +59,7 @@ export default function MatchingPage() {
   });
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [matches, setMatches] = useState<{ id: string; name: string; score: number }[]>([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -141,7 +177,7 @@ export default function MatchingPage() {
                 <label className="block text-sm font-medium text-gray-700">Preferred Amenities</label>
                 <select
                   multiple
-                  value={preferences.amenities}
+                  value={JSON.parse(preferences.amenities)}
                   onChange={(e) => setPreferences({ ...preferences, amenities: JSON.stringify(Array.from(e.target.selectedOptions, option => option.value)) })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -209,45 +245,70 @@ export default function MatchingPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="bg-white rounded-2xl shadow-xl p-8"
           >
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Best Matches</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Nearby Neighborhoods</h2>
+            <input
+              type="text"
+              placeholder="Search neighborhoods..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full mb-6 p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-stone-900"
+            />
             {error ? (
               <div className="bg-red-50 p-4 rounded-lg">
                 <p className="text-red-600">{error}</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {matches.map((match, index) => (
-                  <motion.div
-                    key={match.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="bg-gray-50 p-4 rounded-lg"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">{match.name}</h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-sm text-gray-600">Match Score:</span>
-                          <span className="text-blue-600 font-medium">{match.score}%</span>
-                        </div>
-                        <div className="mt-2">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${match.score}%` }}
-                            ></div>
+                {matches
+                  .filter(match => match.name.toLowerCase().includes(search.toLowerCase()))
+                  .map((match, index) => {
+                    const rating = getMockRating(match.name);
+                    const reviews = getMockReviews(match.name);
+                    return (
+                      <motion.div
+                        key={match.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className="bg-amber-100 p-4 rounded-lg shadow"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-lg text-stone-900">{match.name}</h3>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-sm text-gray-600">Match Score:</span>
+                              <span className="text-blue-600 font-medium">{match.score}%</span>
+                            </div>
+                            <div className="mt-2">
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${match.score}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                            <div className="flex items-center mt-2">
+                              <span className="text-yellow-500 text-xl mr-2">
+                                {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
+                              </span>
+                              <span className="text-sm text-gray-700">{rating}.0</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-2xl">
-                          {match.score >= 80 ? '⭐⭐⭐⭐⭐' : match.score >= 60 ? '⭐⭐⭐⭐' : '⭐⭐⭐'}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                        <div className="mt-4">
+                          <span className="font-semibold text-stone-900">User Reviews:</span>
+                          <ul className="mt-1 space-y-1">
+                            {reviews.map((rev, i) => (
+                              <li key={i} className="text-sm text-stone-900 bg-amber-50 rounded px-2 py-1">
+                                <span className="font-bold">{rev.reviewer}:</span> {rev.review} {' '}
+                                <span className="text-yellow-500">{'★'.repeat(rev.rating)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
               </div>
             )}
           </motion.div>
@@ -255,5 +316,5 @@ export default function MatchingPage() {
       </div>
     </div>
   );
-  );
-}
+  }
+

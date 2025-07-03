@@ -43,7 +43,7 @@ export default function Navbar() {
             <Link
               key={item.href}
               href={item.href}
-              className="px-3 py-1.5 rounded-full text-amber-700 hover:bg-amber-100 hover:text-amber-800 transition-colors font-medium text-sm"
+              className="px-4 py-2 rounded-full font-semibold text-white bg-gradient-to-r from-pink-500 via-yellow-400 to-blue-500 shadow-md hover:scale-105 hover:brightness-110 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
             >
               {item.label}
             </Link>
