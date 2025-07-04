@@ -36,6 +36,7 @@ export type Review = {
   id: number;
   content: string;
   rating: number;
+  category: string;
   userId: string;
   neighborhoodId: number;
   createdAt: Date;
@@ -56,4 +57,5 @@ export interface PrismaMatch extends Match {
 
 export interface PrismaReview extends Review {
   id: number;
+  category: string;
 }

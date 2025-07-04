@@ -1,10 +1,10 @@
-
-
+"use client";
 
 import Image from "next/image";
 import { FaMapMarkerAlt, FaGraduationCap, FaDollarSign, FaClock } from "react-icons/fa";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import WaveDivider from "@/components/WaveDivider";
 
 const heroImages = [
   "/images/neighborhood_pic2.avif",
@@ -21,6 +21,32 @@ const features = [
   "User account for saving preferences"
 ];
 
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
+
+function GetStartedButton() {
+  const { isSignedIn } = useUser();
+  const router = useRouter();
+  const handleClick = useCallback(() => {
+    if (isSignedIn) {
+      router.push('/matching');
+    } else {
+      router.push('/sign-in/');
+    }
+  }, [isSignedIn, router]);
+
+  return (
+    <Button
+      className="bg-blue-600 text-stone-900 hover:bg-blue-700 px-8 py-3 text-lg"
+      onClick={handleClick}
+      type="button"
+    >
+      Get Started
+    </Button>
+  );
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-blue-900">
@@ -29,19 +55,18 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 opacity-90"></div>
         <div className="relative container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-stone-900">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-amber-300 to-blue-800 drop-shadow-md">
               Find Your Perfect Neighborhood
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 mb-8">
               Discover the perfect place to call home based on your lifestyle, budget, and needs
             </p>
-            <Link href="/sign-in">
-              <Button className="bg-blue-600 text-stone-900 hover:bg-blue-700 px-8 py-3 text-lg">
-                Get Started
-              </Button>
-            </Link>
+            {/* Client-side Get Started button with Clerk auth logic */}
+            <GetStartedButton />
           </div>
         </div>
+      {/* Wavy Divider */}
+      <WaveDivider color="#1e293b" />
       </section>
 
       {/* Key Features Section */}
@@ -95,7 +120,7 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20">
+      <section className="py-20 bg-gradient-to-r from-gray-800 via-slate-700 to-blue-900">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 text-blue-200">How It Works</h2>
@@ -108,7 +133,7 @@ export default function Home() {
               <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-6">
                 <span className="text-2xl font-bold">1</span>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-stone-900">Set Your Preferences</h3>
+              <h3 className="text-xl font-semibold mb-3 text-white">Set Your Preferences</h3>
               <p className="text-stone-900">
                 Tell us about your ideal neighborhood - budget, commute time, amenities, and more
               </p>
@@ -117,7 +142,7 @@ export default function Home() {
               <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-6">
                 <span className="text-2xl font-bold">2</span>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-stone-900">Get Recommendations</h3>
+              <h3 className="text-xl font-semibold mb-3 text-white">Get Recommendations</h3>
               <p className="text-stone-900">
                 Our algorithm matches you with neighborhoods that fit your lifestyle and needs
               </p>
@@ -126,7 +151,7 @@ export default function Home() {
               <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-6">
                 <span className="text-2xl font-bold">3</span>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-stone-900">Explore & Decide</h3>
+              <h3 className="text-xl font-semibold mb-3 text-white">Explore & Decide</h3>
               <p className="text-stone-900">
                 View detailed neighborhood profiles, read resident reviews, and make an informed decision
               </p>

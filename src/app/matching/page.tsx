@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { mockPrisma as prisma } from '@/lib/mock-prisma';
@@ -44,6 +45,32 @@ function getMockReviews(name: string) {
 
 export default function MatchingPage() {
   const router = useRouter();
+  // Amenities dropdown state
+  const amenitiesOptions: { value: string; label: string }[] = [
+    { value: "park", label: "Parks & Recreation" },
+    { value: "school", label: "Schools & Education" },
+    { value: "grocery", label: "Grocery Stores" },
+    { value: "restaurant", label: "Restaurants & Dining" },
+    { value: "public_transport", label: "Public Transportation" }
+  ];
+  const [showAmenitiesDropdown, setShowAmenitiesDropdown] = useState(false);
+
+  // Click-away handler for amenities dropdown
+  React.useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      const dropdown = document.getElementById('amenities-dropdown');
+      if (dropdown && !dropdown.contains(e.target as Node)) {
+        setShowAmenitiesDropdown(false);
+      }
+    }
+    if (showAmenitiesDropdown) {
+      document.addEventListener('mousedown', handleClick);
+    } else {
+      document.removeEventListener('mousedown', handleClick);
+    }
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showAmenitiesDropdown]);
+
   const [preferences, setPreferences] = useState<UserPreference>({
     id: '',
     userId: '',
@@ -125,14 +152,16 @@ export default function MatchingPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          className="flex justify-center mb-12"
         >
-          <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800 drop-shadow-md">
-            Find Your Perfect Neighborhood
-          </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover the perfect place to call home based on your lifestyle preferences and needs
-          </p>
+          <div className="rounded-2xl border-2 border-blue-300 bg-white/70 shadow-lg px-8 py-6 flex flex-col items-center max-w-2xl w-full">
+            <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800 drop-shadow-md">
+              Find Your Perfect Neighborhood
+            </h1>
+            <p className="text-gray-700 text-lg text-center">
+              Discover the perfect place to call home based on your lifestyle preferences and needs
+            </p>
+          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -141,8 +170,12 @@ export default function MatchingPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
+            className="relative rounded-2xl shadow-xl p-8 bg-gray-100 overflow-hidden"
           >
+            {/* Gradient overlay */}
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-100/70 via-amber-100/40 to-gray-100/80 opacity-70"></div>
+            <div className="relative z-10">
+
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Preferences</h2>
             <div className="space-y-6">
               <div className="space-y-2">
@@ -174,19 +207,43 @@ export default function MatchingPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Preferred Amenities</label>
-                <select
-                  multiple
-                  value={JSON.parse(preferences.amenities)}
-                  onChange={(e) => setPreferences({ ...preferences, amenities: JSON.stringify(Array.from(e.target.selectedOptions, option => option.value)) })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="park">Parks & Recreation</option>
-                  <option value="school">Schools & Education</option>
-                  <option value="grocery">Grocery Stores</option>
-                  <option value="restaurant">Restaurants & Dining</option>
-                  <option value="public_transport">Public Transportation</option>
-                </select>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Amenities</label>
+<div className="relative" id="amenities-dropdown">
+  <button
+    type="button"
+    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+    onClick={() => setShowAmenitiesDropdown((v) => !v)}
+  >
+    {JSON.parse(preferences.amenities).length > 0
+      ? amenitiesOptions.filter((opt) => JSON.parse(preferences.amenities).includes(opt.value)).map((opt) => opt.label).join(", ")
+      : "Select amenities..."}
+    <span className="float-right">▼</span>
+  </button>
+  {showAmenitiesDropdown && (
+    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+      {amenitiesOptions.map((opt) => (
+        <label key={opt.value} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={JSON.parse(preferences.amenities).includes(opt.value)}
+            onChange={e => {
+              const arr: string[] = JSON.parse(preferences.amenities);
+              if (e.target.checked) {
+                if (!arr.includes(opt.value)) arr.push(opt.value);
+              } else {
+                const idx = arr.indexOf(opt.value);
+                if (idx > -1) arr.splice(idx, 1);
+              }
+              setPreferences({ ...preferences, amenities: JSON.stringify(arr) });
+            }}
+            className="mr-2"
+          />
+          {opt.label}
+        </label>
+      ))}
+    </div>
+  )}
+</div>
               </div>
 
               <div className="space-y-4">
@@ -236,14 +293,15 @@ export default function MatchingPage() {
                 )}
               </Button>
             </div>
-          </motion.div>
+          </div>{/* close relative z-10 */}
+        </motion.div>
 
           {/* Results Section */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
+            className="bg-gray-200 rounded-2xl shadow-xl p-8"
           >
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Nearby Neighborhoods</h2>
             <input

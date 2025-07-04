@@ -44,10 +44,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { area, content, authorId } = await request.json();
+    const { area, content, authorId, category, rating } = await request.json();
 
-    if (!area || !content) {
-      return NextResponse.json({ error: 'Area and content are required' }, { status: 400 });
+    if (!area || !content || !category || typeof rating !== 'number') {
+      return NextResponse.json({ error: 'Area, content, category, and rating are required' }, { status: 400 });
     }
 
     const neighborhood = await prisma.$queryRaw`
@@ -59,8 +59,8 @@ export async function POST(request: Request) {
     }
 
     const newReview = await prisma.$executeRaw`
-      INSERT INTO Review (content, userId, neighborhoodId, rating)
-      VALUES (${content}, ${authorId}, ${neighborhood.id}, 0)
+      INSERT INTO Review (content, userId, neighborhoodId, rating, category)
+      VALUES (${content}, ${authorId}, ${neighborhood.id}, ${rating}, ${category})
     `;
 
     return NextResponse.json(newReview, { status: 201 });

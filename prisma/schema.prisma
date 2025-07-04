@@ -68,6 +68,7 @@ model Review {
   id             Int          @id @default(autoincrement())
   content        String
   rating         Int
+  category       String
   userId         String
   neighborhoodId Int
   createdAt      DateTime     @default(now())

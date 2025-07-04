@@ -1,6 +1,7 @@
 'use client';
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { useUser } from '@clerk/nextjs';
 
 const navItems = [
   { label: "Find Your Neighborhood", href: "/matching" },
@@ -9,6 +10,21 @@ const navItems = [
   { label: "Rankings", href: "/rankings" },
   { label: "Home Buying Tips", href: "/tips" },
 ];
+
+function UserProfileAvatar() {
+  const { isSignedIn, user } = useUser();
+  if (!isSignedIn || !user || !user.imageUrl) return null;
+  return (
+    <Link href="/user" className="ml-2">
+      <img
+        src={user.imageUrl}
+        alt={user.fullName || 'Profile'}
+        className="w-9 h-9 rounded-full border-2 border-blue-400 shadow-sm hover:ring-2 hover:ring-blue-400 transition"
+        style={{ objectFit: 'cover' }}
+      />
+    </Link>
+  );
+}
 
 export default function Navbar() {
   const [show, setShow] = useState(true);
@@ -31,19 +47,23 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`w-full bg-amber-50 backdrop-blur-md sticky top-0 z-50 transition-transform duration-300 ${show ? 'translate-y-0' : '-translate-y-full'}`}
+      className={`w-full bg-gradient-to-r from-gray-900 via-slate-800 to-blue-900/90 backdrop-blur-md sticky top-0 z-50 transition-transform duration-300 ${show ? 'translate-y-0' : '-translate-y-full'}`}
       style={{ paddingBottom: '3rem' }} // Make space for the wavy border
     >
-      <div className="container mx-auto flex justify-between items-center py-3 px-6">
-        <Link href="/" className="text-2xl font-bold tracking-tight hover:text-amber-700 transition-colors bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-amber-700">
-          NeighborFit
-        </Link>
+      <div className="container mx-auto flex justify-between items-center py-4 px-8 shadow-md">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="text-2xl font-bold tracking-tight text-white transition-colors">
+            NeighborFit
+          </Link>
+          {/* Show user profile image if signed in */}
+          <UserProfileAvatar />
+        </div>
         <div className="flex gap-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="px-4 py-2 rounded-full font-semibold text-white bg-gradient-to-r from-pink-500 via-yellow-400 to-blue-500 shadow-md hover:scale-105 hover:brightness-110 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
+              className="px-4 py-2 rounded-full bg-slate-800/70 text-white hover:bg-blue-900/80 hover:text-blue-200 transition font-semibold shadow-none"
             >
               {item.label}
             </Link>
