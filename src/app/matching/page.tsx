@@ -122,135 +122,69 @@ export default function MatchingPage() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showAmenitiesDropdown]);
 
-  const [preferences, setPreferences] = useState<Partial<UserPreference>>({
-    userId: '',
-    budget: 0,
-    commuteTime: 0,
-    amenities: '[]',
-    safetyWeight: 0.25,
-    commuteWeight: 0.25,
-    amenitiesWeight: 0.25,
-    walkabilityWeight: 0.25
-  });
+  const [preferences, setPreferences] = useState<Partial<UserPreference>>({});
+
+  // Save preferences to backend on change
+  useEffect(() => {
+    if (preferences && Object.keys(preferences).length > 0) {
+      fetch('/api/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preferences)
+      }).catch(() => {});
+    }
+  }, [preferences]);
   
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [matches, setMatches] = useState<{ id: string; name: string; score: number; neighborhood?: any }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Demo neighborhoods data
-  const demoNeighborhoods = [
-    {
-      id: 1,
-      name: "Riverside Heights",
-      avgRent: 2800,
-      safetyScore: 9.2,
-      walkabilityScore: 85,
-      commuteScore: 7.5,
-      description: "Trendy waterfront neighborhood with great restaurants and nightlife"
-    },
-    {
-      id: 2,
-      name: "Garden District",
-      avgRent: 2200,
-      safetyScore: 8.8,
-      walkabilityScore: 92,
-      commuteScore: 8.2,
-      description: "Historic area with tree-lined streets and family-friendly atmosphere"
-    },
-    {
-      id: 3,
-      name: "Tech Hub Central",
-      avgRent: 3500,
-      safetyScore: 8.5,
-      walkabilityScore: 78,
-      commuteScore: 9.5,
-      description: "Modern high-tech district with excellent transit connections"
-    },
-    {
-      id: 4,
-      name: "Arts Quarter",
-      avgRent: 1900,
-      safetyScore: 7.8,
-      walkabilityScore: 88,
-      commuteScore: 7.0,
-      description: "Creative neighborhood filled with galleries, studios, and cafes"
-    },
-    {
-      id: 5,
-      name: "Suburban Oaks",
-      avgRent: 2500,
-      safetyScore: 9.5,
-      walkabilityScore: 65,
-      commuteScore: 6.5,
-      description: "Quiet residential area with excellent schools and parks"
-    },
-    {
-      id: 6,
-      name: "Downtown Core",
-      avgRent: 4200,
-      safetyScore: 8.0,
-      walkabilityScore: 95,
-      commuteScore: 9.8,
-      description: "Urban center with premium amenities and city conveniences"
-    }
-  ];
-
   useEffect(() => {
-    // Set demo neighborhoods immediately
-    setNeighborhoods(demoNeighborhoods as any);
+    const fetchNeighborhoods = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/neighborhoods');
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to fetch neighborhoods');
+        }
+        const data = await res.json();
+        setNeighborhoods(data.neighborhoods || []);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch neighborhoods');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNeighborhoods();
   }, []);
 
   const handleCalculateMatches = async () => {
     setLoading(true);
     setError(null);
-    
-    if (!preferences.budget) {
-      setError("Please enter your budget to get matches");
-      setLoading(false);
-      return;
-    }
-
-    // Simulate calculation time for better UX
-    setTimeout(() => {
-      // Calculate demo matches based on preferences
-      const calculatedMatches = demoNeighborhoods.map(neighborhood => {
-        // Simple scoring algorithm for demo
-        let score = 0;
-        const budget = preferences.budget || 0;
-        const commuteTime = preferences.commuteTime || 30;
-        
-        // Budget score (higher if rent is within budget)
-        if (neighborhood.avgRent <= budget) {
-          score += 25;
-        } else {
-          score += Math.max(0, 25 - ((neighborhood.avgRent - budget) / budget) * 25);
-        }
-        
-        // Safety score (out of 25)
-        score += (neighborhood.safetyScore / 10) * 25;
-        
-        // Walkability score (out of 25)
-        score += (neighborhood.walkabilityScore / 100) * 25;
-        
-        // Commute score (out of 25)
-        score += (neighborhood.commuteScore / 10) * 25;
-        
-        // Add some randomization for variety
-        score += Math.random() * 5 - 2.5;
-        
-        return {
-          id: neighborhood.id.toString(),
-          name: neighborhood.name,
-          score: Math.min(100, Math.max(0, score)),
-          neighborhood
-        };
+    try {
+      const res = await fetch('/api/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
       });
-
-      calculatedMatches.sort((a, b) => b.score - a.score);
-      setMatches(calculatedMatches);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to fetch matches');
+      }
+      const matches = await res.json();
+      setMatches(matches.map((n: any) => ({
+        id: n.id.toString(),
+        name: n.name,
+        score: n.score,
+        neighborhood: n
+      })));
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch matches');
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   const selectedAmenities = preferences.amenities ? JSON.parse(preferences.amenities) : [];

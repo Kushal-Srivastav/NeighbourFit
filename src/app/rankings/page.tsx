@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,42 +57,61 @@ const rankingCategories = [
   { id: 'dining', name: 'Foodie Paradise', icon: Utensils, description: 'Amazing restaurants and cafes' }
 ];
 
-const demoRankings = {
-  overall: [
-    { rank: 1, name: 'Riverside Heights', score: 94, change: '+2', city: 'San Francisco', price: '$4,200', safety: 95, walkability: 92, dining: 90, image: '🏘️' },
-    { rank: 2, name: 'Garden District', score: 92, change: '0', city: 'New Orleans', price: '$2,800', safety: 88, walkability: 95, dining: 94, image: '🌺' },
-    { rank: 3, name: 'Tech Hub Central', score: 90, change: '+1', city: 'Austin', price: '$3,500', safety: 85, walkability: 88, dining: 85, image: '🏢' },
-    { rank: 4, name: 'Historic Commons', score: 88, change: '-2', city: 'Boston', price: '$3,800', safety: 92, walkability: 85, dining: 82, image: '🏛️' },
-    { rank: 5, name: 'Artisan Quarter', score: 87, change: '+3', city: 'Portland', price: '$2,900', safety: 80, walkability: 90, dining: 92, image: '🎨' },
-    { rank: 6, name: 'Coastal Marina', score: 85, change: '-1', city: 'Seattle', price: '$4,000', safety: 88, walkability: 80, dining: 88, image: '⛵' },
-    { rank: 7, name: 'University Heights', score: 83, change: '+1', city: 'Ann Arbor', price: '$2,200', safety: 85, walkability: 88, dining: 75, image: '🎓' },
-    { rank: 8, name: 'Downtown Core', score: 82, change: '0', city: 'Denver', price: '$3,200', safety: 78, walkability: 95, dining: 85, image: '🌆' }
-  ],
-  safety: [
-    { rank: 1, name: 'Historic Commons', score: 92, change: '+1', city: 'Boston', price: '$3,800', safety: 92, walkability: 85, dining: 82, image: '🏛️' },
-    { rank: 2, name: 'Riverside Heights', score: 95, change: '0', city: 'San Francisco', price: '$4,200', safety: 95, walkability: 92, dining: 90, image: '🏘️' },
-    { rank: 3, name: 'Garden District', score: 88, change: '+2', city: 'New Orleans', price: '$2,800', safety: 88, walkability: 95, dining: 94, image: '🌺' },
-    { rank: 4, name: 'Coastal Marina', score: 88, change: '+1', city: 'Seattle', price: '$4,000', safety: 88, walkability: 80, dining: 88, image: '⛵' },
-    { rank: 5, name: 'University Heights', score: 85, change: '-2', city: 'Ann Arbor', price: '$2,200', safety: 85, walkability: 88, dining: 75, image: '🎓' }
-  ],
-  value: [
-    { rank: 1, name: 'University Heights', score: 83, change: '+3', city: 'Ann Arbor', price: '$2,200', safety: 85, walkability: 88, dining: 75, image: '🎓' },
-    { rank: 2, name: 'Garden District', score: 92, change: '+1', city: 'New Orleans', price: '$2,800', safety: 88, walkability: 95, dining: 94, image: '🌺' },
-    { rank: 3, name: 'Artisan Quarter', score: 87, change: '0', city: 'Portland', price: '$2,900', safety: 80, walkability: 90, dining: 92, image: '🎨' },
-    { rank: 4, name: 'Downtown Core', score: 82, change: '+2', city: 'Denver', price: '$3,200', safety: 78, walkability: 95, dining: 85, image: '🌆' },
-    { rank: 5, name: 'Tech Hub Central', score: 90, change: '-1', city: 'Austin', price: '$3,500', safety: 85, walkability: 88, dining: 85, image: '🏢' }
-  ]
-};
-
 export default function RankingsPage() {
   const [selectedCategory, setSelectedCategory] = useState('overall');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  const currentRankings = demoRankings[selectedCategory] || demoRankings.overall;
-  const filteredRankings = currentRankings.filter(neighborhood =>
+  const [neighborhoods, setNeighborhoods] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchNeighborhoods = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/neighborhoods');
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to fetch neighborhoods');
+        }
+        const data = await res.json();
+        setNeighborhoods(data.neighborhoods || []);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch neighborhoods');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNeighborhoods();
+  }, []);
+
+  // Compute rankings based on selected category
+  const getScore = (n: any) => {
+    switch (selectedCategory) {
+      case 'safety':
+        return n.crimeRate !== undefined ? (10 - n.crimeRate) : 0;
+      case 'walkable':
+        return n.walkScore || 0;
+      case 'dining':
+        return n.amenities?.includes('Restaurants') ? 100 : 0;
+      case 'value':
+        return n.medianIncome && n.avgRent ? n.medianIncome / n.avgRent : 0;
+      case 'commute':
+        return n.transitScore || 0;
+      case 'family':
+        return n.population || 0;
+      default:
+        // Overall: average of main scores
+        return ((n.walkScore || 0) + (n.transitScore || 0) + (n.bikeScore || 0) + (n.medianIncome || 0) / ((n.avgRent || 1) * 2)) / 4;
+    }
+  };
+
+  const sorted = [...neighborhoods].sort((a, b) => getScore(b) - getScore(a));
+  const filteredRankings = sorted.filter(neighborhood =>
     neighborhood.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    neighborhood.city.toLowerCase().includes(searchTerm.toLowerCase())
+    (neighborhood.city || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const selectedCategoryData = rankingCategories.find(cat => cat.id === selectedCategory);

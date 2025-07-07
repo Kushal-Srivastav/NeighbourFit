@@ -1,0 +1,83 @@
+
+> neighborfit-app@0.1.0 build
+> next build
+
+   ▲ Next.js 15.3.4
+   - Environments: .env
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/app/rankings/page.tsx
+Error:   [31mx[0m Expected ';', '}' or <eof>
+    ,-[[36;1;4mC:\Users\kusha\OneDrive\Desktop\NeighborFit-Polished-App\NeighbourFit-main\src\app\rankings\page.tsx[0m:63:1]
+ [2m60[0m |     // Rankings are now computed from backend data
+ [2m61[0m |     // Remove demoRankings and fetch real neighborhoods
+ [2m62[0m |     
+ [2m63[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m   overall: [
+ [2m64[0m | [35;1m|[0m       { rank: 1, name: 'Riverside Heights', score: 94, change: '+2', city: 'San Francisco', price: '$4,200', safety: 95, walkability: 92, dining: 90, image: '🏘️' },
+ [2m65[0m | [35;1m|[0m       { rank: 2, name: 'Garden District', score: 92, change: '0', city: 'New Orleans', price: '$2,800', safety: 88, walkability: 95, dining: 94, image: '🌺' },
+ [2m66[0m | [35;1m|[0m       { rank: 3, name: 'Tech Hub Central', score: 90, change: '+1', city: 'Austin', price: '$3,500', safety: 85, walkability: 88, dining: 85, image: '🏢' },
+ [2m67[0m | [35;1m|[0m       { rank: 4, name: 'Historic Commons', score: 88, change: '-2', city: 'Boston', price: '$3,800', safety: 92, walkability: 85, dining: 82, image: '🏛️' },
+ [2m68[0m | [35;1m|[0m       { rank: 5, name: 'Artisan Quarter', score: 87, change: '+3', city: 'Portland', price: '$2,900', safety: 80, walkability: 90, dining: 92, image: '🎨' },
+ [2m69[0m | [35;1m|[0m       { rank: 6, name: 'Coastal Marina', score: 85, change: '-1', city: 'Seattle', price: '$4,000', safety: 88, walkability: 80, dining: 88, image: '⛵' },
+ [2m70[0m | [35;1m|[0m       { rank: 7, name: 'University Heights', score: 83, change: '+1', city: 'Ann Arbor', price: '$2,200', safety: 85, walkability: 88, dining: 75, image: '🎓' },
+ [2m71[0m | [35;1m|[0m       { rank: 8, name: 'Downtown Core', score: 82, change: '0', city: 'Denver', price: '$3,200', safety: 78, walkability: 95, dining: 85, image: '🌆' }
+ [2m72[0m | [35;1m|[0m     ],
+ [2m73[0m | [35;1m|[0m[35;1m-[0m[35;1m>[0m   safety: [
+    : [35;1m`[0m[35;1m---[0m[33;1m        ^[0m
+    : [35;1m`[0m[35;1m---[0m[35;1m-[0m [35;1mThis is the expression part of an expression statement[0m
+ [2m74[0m |         { rank: 1, name: 'Historic Commons', score: 92, change: '+1', city: 'Boston', price: '$3,800', safety: 92, walkability: 85, dining: 82, image: '🏛️' },
+ [2m75[0m |         { rank: 2, name: 'Riverside Heights', score: 95, change: '0', city: 'San Francisco', price: '$4,200', safety: 95, walkability: 92, dining: 90, image: '🏘️' },
+ [2m76[0m |         { rank: 3, name: 'Garden District', score: 88, change: '+2', city: 'New Orleans', price: '$2,800', safety: 88, walkability: 95, dining: 94, image: '🌺' },
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/app/rankings/page.tsx
+
+./src/app/review/page.tsx
+Error:   [31mx[0m Return statement is not allowed here
+     ,-[[36;1;4mC:\Users\kusha\OneDrive\Desktop\NeighborFit-Polished-App\NeighbourFit-main\src\app\review\page.tsx[0m:345:1]
+ [2m342[0m | 
+ [2m343[0m |     if (!reviewContent.trim()) {
+ [2m344[0m |       setSubmitError('Review content is required');
+ [2m345[0m |       return;
+     : [35;1m      ^^^^^^^[0m
+ [2m346[0m |     }
+ [2m347[0m | 
+ [2m348[0m |     if (!area.trim()) {
+     `----
+  [31mx[0m Return statement is not allowed here
+     ,-[[36;1;4mC:\Users\kusha\OneDrive\Desktop\NeighborFit-Polished-App\NeighbourFit-main\src\app\review\page.tsx[0m:350:1]
+ [2m347[0m | 
+ [2m348[0m |     if (!area.trim()) {
+ [2m349[0m |       setSubmitError('Please search for an area first');
+ [2m350[0m |       return;
+     : [35;1m      ^^^^^^^[0m
+ [2m351[0m |     }
+ [2m352[0m | 
+ [2m353[0m |     setSubmitting(true);
+     `----
+  [31mx[0m Expression expected
+     ,-[[36;1;4mC:\Users\kusha\OneDrive\Desktop\NeighborFit-Polished-App\NeighbourFit-main\src\app\review\page.tsx[0m:380:1]
+ [2m377[0m |       
+ [2m378[0m |       setSubmitting(false);
+ [2m379[0m |     }, 1000);
+ [2m380[0m |   };
+     : [35;1m  ^[0m
+ [2m381[0m | 
+ [2m382[0m |   const renderStars = (rating: number, interactive = false, size = 'md') => {
+ [2m383[0m |     const sizeClass = size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-6 h-6' : 'w-4 h-4';
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/app/review/page.tsx
+
+
+> Build failed because of webpack errors

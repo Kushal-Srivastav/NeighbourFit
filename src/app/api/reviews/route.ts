@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PrismaClient } from '@prisma/client';
 
+// GET /api/reviews?neighborhoodId=1 or ?area=Greenwood
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const area = searchParams.get('area');
@@ -15,21 +16,31 @@ export async function GET(request: Request) {
   }
 
   try {
-    const neighborhood = await prisma.$queryRaw`
-      SELECT id FROM Neighborhood WHERE name = ${area}
-    ` as { id: number } | null;
+    // Support query by area (name) or neighborhoodId
+    let neighborhoodId = searchParams.get('neighborhoodId');
+    let area = searchParams.get('area');
+    let id: number | undefined;
 
-    if (!neighborhood) {
-      return NextResponse.json({ error: 'Neighborhood not found' }, { status: 404 });
+    if (neighborhoodId) {
+      id = Number(neighborhoodId);
+    } else if (area) {
+      const neighborhood = await prisma.neighborhood.findFirst({ where: { name: area } });
+      if (!neighborhood) {
+        return NextResponse.json({ error: 'Neighborhood not found' }, { status: 404 });
+      }
+      id = neighborhood.id;
+    } else {
+      return NextResponse.json({ error: 'Must provide neighborhoodId or area' }, { status: 400 });
     }
 
-    const reviews = await prisma.$queryRaw`
-      SELECT r.*, u.name as authorName, n.name as neighborhoodName
-      FROM Review r
-      JOIN User u ON r.userId = u.id
-      JOIN Neighborhood n ON r.neighborhoodId = n.id
-      WHERE n.name = ${area}
-    ` as { id: number; content: string; rating: number; userId: string; neighborhoodId: number; authorName: string; neighborhoodName: string }[];
+    const reviews = await prisma.review.findMany({
+      where: { neighborhoodId: id },
+      include: {
+        user: { select: { name: true, email: true } },
+        neighborhood: { select: { name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
     return NextResponse.json(reviews);
   } catch (error) {
@@ -44,26 +55,47 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { area, content, authorId, category, rating } = await request.json();
+    const body = await request.json();
+    const { neighborhoodId, area, content, category, rating, userId, authorId } = body;
 
-    if (!area || !content || !category || typeof rating !== 'number') {
-      return NextResponse.json({ error: 'Area, content, category, and rating are required' }, { status: 400 });
+    // Accept userId or authorId for compatibility
+    const finalUserId = userId || authorId;
+    if ((!neighborhoodId && !area) || !content || !category || typeof rating !== 'number' || !finalUserId) {
+      return NextResponse.json({ error: 'neighborhoodId or area, content, category, rating, and userId are required' }, { status: 400 });
     }
 
-    const neighborhood = await prisma.$queryRaw`
-      SELECT id FROM Neighborhood WHERE name = ${area}
-    ` as { id: number } | null;
-
-    if (!neighborhood) {
-      return NextResponse.json({ error: 'Neighborhood not found' }, { status: 404 });
+    // Find neighborhood by id or area name
+    let nId = neighborhoodId;
+    if (!nId && area) {
+      const neighborhood = await prisma.neighborhood.findFirst({ where: { name: area } });
+      if (!neighborhood) {
+        return NextResponse.json({ error: 'Neighborhood not found' }, { status: 404 });
+      }
+      nId = neighborhood.id;
     }
 
-    const newReview = await prisma.$executeRaw`
-      INSERT INTO Review (content, userId, neighborhoodId, rating, category)
-      VALUES (${content}, ${authorId}, ${neighborhood.id}, ${rating}, ${category})
-    `;
+    // Check user exists
+    const user = await prisma.user.findUnique({ where: { id: finalUserId } });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
-    return NextResponse.json(newReview, { status: 201 });
+    // Create review
+    const review = await prisma.review.create({
+      data: {
+        content,
+        category,
+        rating,
+        userId: finalUserId,
+        neighborhoodId: nId,
+      },
+      include: {
+        user: { select: { name: true, email: true } },
+        neighborhood: { select: { name: true } },
+      },
+    });
+
+    return NextResponse.json(review, { status: 201 });
   } catch (error) {
     console.error('Error submitting review:', error);
     return NextResponse.json({ error: 'Error submitting review' }, { status: 500 });
