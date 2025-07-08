@@ -76,7 +76,14 @@ export default function ReviewAreaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [category, setCategory] = useState('safety');
+  const [categoryRatings, setCategoryRatings] = useState<Record<string, number>>({
+    safety: 5,
+    nightlife: 5,
+    parks: 5,
+    cleanliness: 5,
+    connectivity: 5,
+    'network coverage': 5,
+  });
   const [avgRatings, setAvgRatings] = useState<Record<string, number> | null>(null);
   const [reviewContent, setReviewContent] = useState('');
   const categories = [
@@ -226,8 +233,7 @@ export default function ReviewAreaPage() {
         content: r.content,
         authorId: r.user?.name || 'Anonymous',
         createdAt: r.createdAt,
-        category: r.category,
-        rating: r.rating
+        categoryRatings: typeof r.categoryRatings === 'string' ? JSON.parse(r.categoryRatings) : r.categoryRatings
       }));
       setReviews(mapped);
     } catch (err: any) {
@@ -254,7 +260,7 @@ export default function ReviewAreaPage() {
       const res = await fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ area, content: reviewContent.trim(), category, rating, authorId: authorName.trim() || 'Anonymous' })
+        body: JSON.stringify({ area, content: reviewContent.trim(), categoryRatings, userId: user?.id || authorName.trim() || 'Anonymous' })
       });
       if (!res.ok) {
         const data = await res.json();
@@ -268,14 +274,21 @@ export default function ReviewAreaPage() {
         content: r.content,
         authorId: r.user?.name || 'Anonymous',
         createdAt: r.createdAt,
-        category: r.category,
-        rating: r.rating
+        categoryRatings: typeof r.categoryRatings === 'string' ? JSON.parse(r.categoryRatings) : (r.categoryRatings || categoryRatings)
       };
       setReviews((prev: Review[]) => [newReview, ...prev]);
       setSubmitSuccess(true);
       setSubmitError(null);
       setReviewContent('');
       setAuthorName('');
+      setCategoryRatings({
+        safety: 5,
+        nightlife: 5,
+        parks: 5,
+        cleanliness: 5,
+        connectivity: 5,
+        'network coverage': 5,
+      });
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to submit review');
@@ -301,8 +314,8 @@ export default function ReviewAreaPage() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <section className="flex-grow">
+    <div className="flex flex-col h-full pt-24">
+      <section className="flex-grow pt-0">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row">
             <div className="md:w-1/2">
@@ -313,6 +326,7 @@ export default function ReviewAreaPage() {
                 exit={{ opacity: 0 }}
                 className="space-y-4 sm:space-y-6"
               >
+                
                 {/* Average Ratings Summary */}
                 {avgRatings && (
                   <AverageRatingBox 
@@ -339,12 +353,11 @@ export default function ReviewAreaPage() {
                 <h2 className="text-base sm:text-lg font-medium text-white mb-4">Write a Review</h2>
                 <ReviewForm
                   area={area}
+                  setArea={setArea}
                   authorName={authorName}
                   setAuthorName={setAuthorName}
-                  rating={rating}
-                  setRating={setRating}
-                  category={category}
-                  setCategory={setCategory}
+                  categoryRatings={categoryRatings}
+                  setCategoryRatings={setCategoryRatings}
                   reviewContent={reviewContent}
                   setReviewContent={setReviewContent}
                   onSubmit={handleSubmitReview}

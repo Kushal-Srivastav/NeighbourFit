@@ -4,6 +4,7 @@ export interface Review {
   content: string;
   authorId: string | null;
   createdAt: string;
-  category: string;
-  rating: number;
+  categoryRatings: Record<string, number>;
+  // category?: string;
+  // rating?: number;
 }

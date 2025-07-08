@@ -67,46 +67,76 @@ async function main() {
   const reviewsData = [
     {
       content: 'Great community and lots of parks nearby!',
-      rating: 5,
-      category: 'amenities',
+      categoryRatings: JSON.stringify({
+        safety: 5,
+        nightlife: 3,
+        parks: 5,
+        cleanliness: 4,
+        connectivity: 4,
+        'network coverage': 5,
+      }),
       userId: user.id,
       neighborhoodId: createdNeighborhoods.find(n => n.name === 'Greenwood')?.id,
     },
     {
       content: 'Quiet, safe, but a bit far from downtown.',
-      rating: 4,
-      category: 'safety',
+      categoryRatings: JSON.stringify({
+        safety: 4,
+        nightlife: 2,
+        parks: 3,
+        cleanliness: 5,
+        connectivity: 3,
+        'network coverage': 4,
+      }),
       userId: user.id,
       neighborhoodId: createdNeighborhoods.find(n => n.name === 'Greenwood')?.id,
     },
     {
       content: 'Amazing schools and friendly neighbors.',
-      rating: 5,
-      category: 'schools',
+      categoryRatings: JSON.stringify({
+        safety: 5,
+        nightlife: 2,
+        parks: 4,
+        cleanliness: 5,
+        connectivity: 4,
+        'network coverage': 5,
+      }),
       userId: user.id,
       neighborhoodId: createdNeighborhoods.find(n => n.name === 'Hyde Park')?.id,
     },
     {
       content: 'Affordable and close to public transport.',
-      rating: 4,
-      category: 'commute',
+      categoryRatings: JSON.stringify({
+        safety: 4,
+        nightlife: 3,
+        parks: 3,
+        cleanliness: 4,
+        connectivity: 5,
+        'network coverage': 5,
+      }),
       userId: user.id,
       neighborhoodId: createdNeighborhoods.find(n => n.name === 'Mission District')?.id,
     },
   ];
 
   // Only include reviews with a valid neighborhoodId (number)
-  const validReviews = reviewsData.filter(r => typeof r.neighborhoodId === 'number') as {
+  const validReviews = reviewsData.filter(r => typeof r.neighborhoodId === 'number') as Array<{
     content: string;
-    rating: number;
-    category: string;
+    categoryRatings: string;
     userId: string;
     neighborhoodId: number;
-  }[];
+  }>;
   if (validReviews.length > 0) {
-    await prisma.review.createMany({
-      data: validReviews,
-    });
+    for (const review of validReviews) {
+      await prisma.review.create({
+        data: {
+          content: review.content,
+          categoryRatings: review.categoryRatings,
+          userId: review.userId,
+          neighborhoodId: review.neighborhoodId,
+        }
+      });
+    }
   }
 
   // Seed a user preference that will always match

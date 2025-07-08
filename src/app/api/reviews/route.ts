@@ -56,20 +56,35 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { neighborhoodId, area, content, category, rating, userId, authorId } = body;
+    const { neighborhoodId, area, content, categoryRatings, userId, authorId } = body;
 
     // Accept userId or authorId for compatibility
     const finalUserId = userId || authorId;
-    if ((!neighborhoodId && !area) || !content || !category || typeof rating !== 'number' || !finalUserId) {
-      return NextResponse.json({ error: 'neighborhoodId or area, content, category, rating, and userId are required' }, { status: 400 });
+    if ((!neighborhoodId && !area) || !content || !categoryRatings || typeof categoryRatings !== 'object' || !finalUserId) {
+      return NextResponse.json({ error: 'neighborhoodId or area, content, categoryRatings, and userId are required' }, { status: 400 });
     }
 
-    // Find neighborhood by id or area name
+    // Find or create neighborhood by id or area name
     let nId = neighborhoodId;
     if (!nId && area) {
-      const neighborhood = await prisma.neighborhood.findFirst({ where: { name: area } });
+      let neighborhood = await prisma.neighborhood.findFirst({ where: { name: area } });
       if (!neighborhood) {
-        return NextResponse.json({ error: 'Neighborhood not found' }, { status: 404 });
+        // Create new minimal neighborhood if not found
+        neighborhood = await prisma.neighborhood.create({
+          data: {
+            name: area,
+            city: '',
+            state: '',
+            zipCode: '',
+            population: 0,
+            medianIncome: 0,
+            crimeRate: 0,
+            walkScore: 0,
+            transitScore: 0,
+            bikeScore: 0,
+            amenities: '',
+          },
+        });
       }
       nId = neighborhood.id;
     }
@@ -84,8 +99,7 @@ export async function POST(request: Request) {
     const review = await prisma.review.create({
       data: {
         content,
-        category,
-        rating,
+        categoryRatings: typeof categoryRatings === 'string' ? categoryRatings : JSON.stringify(categoryRatings),
         userId: finalUserId,
         neighborhoodId: nId,
       },
@@ -95,7 +109,13 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(review, { status: 201 });
+    // Parse categoryRatings before returning to frontend
+    const reviewWithParsedRatings = {
+      ...review,
+      categoryRatings: typeof review.categoryRatings === 'string' ? JSON.parse(review.categoryRatings) : review.categoryRatings
+    };
+
+    return NextResponse.json(reviewWithParsedRatings, { status: 201 });
   } catch (error) {
     console.error('Error submitting review:', error);
     return NextResponse.json({ error: 'Error submitting review' }, { status: 500 });
