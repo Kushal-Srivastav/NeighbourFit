@@ -194,9 +194,13 @@ export default function HomePage() {
     <div className="min-h-screen bg-black text-white">
       {/* Hero Section */}
       <section className="relative pt-24 sm:pt-32 lg:pt-40 pb-16 sm:pb-20 lg:pb-24 px-4 sm:px-6 lg:px-8">
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-transparent" />
-        
+        <img
+          src="/images/world map.avif"
+          alt="World Map Background"
+          className="absolute inset-0 w-full h-full object-cover opacity-60 z-0 pointer-events-none select-none"
+          style={{ filter: 'blur(1px)' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/40 to-zinc-900/90 z-0" />
         <div className="container mx-auto text-center relative z-10">
           <motion.div
             variants={staggerContainer}
