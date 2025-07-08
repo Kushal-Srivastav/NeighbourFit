@@ -122,17 +122,33 @@ export default function MatchingPage() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showAmenitiesDropdown]);
 
-  const [preferences, setPreferences] = useState<Partial<UserPreference>>({});
+  // Initialize preferences with all required fields and default values
+  const initialPreferences = {
+    budget: 2000,
+    commuteTime: 30,
+    amenities: '',
+    safetyWeight: 0.5,
+    commuteWeight: 0.2,
+    amenitiesWeight: 0.2,
+    walkabilityWeight: 0.1
+  };
+  const [preferences, setPreferences] = useState(initialPreferences);
 
-  // Save preferences to backend on change
+  // Helper for updating preferences
+  const handlePreferenceChange = (field: keyof typeof initialPreferences, value: any) => {
+    setPreferences(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Save preferences to backend on change (always complete object)
   useEffect(() => {
-    if (preferences && Object.keys(preferences).length > 0) {
-      fetch('/api/preferences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(preferences)
-      }).catch(() => {});
-    }
+    fetch('/api/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(preferences)
+    }).catch(() => {});
   }, [preferences]);
   
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
@@ -521,19 +537,19 @@ export default function MatchingPage() {
                               <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-4 text-xs sm:text-sm">
                                 <div className="flex items-center gap-2">
                                   <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-zinc-500 flex-shrink-0" />
-                                  <span className="text-zinc-400 truncate">Avg. Rent: ${neighborhood.avgRent.toLocaleString()}</span>
+                                  <span className="text-zinc-400 truncate">Avg. Rent: {typeof neighborhood.avgRent === 'number' ? `$${neighborhood.avgRent.toLocaleString()}` : 'N/A'}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-zinc-500 flex-shrink-0" />
-                                  <span className="text-zinc-400">Safety: {neighborhood.safetyScore.toFixed(1)}/10</span>
+                                  <span className="text-zinc-400">Safety: {typeof neighborhood.safetyScore === 'number' ? neighborhood.safetyScore.toFixed(1) : 'N/A'}/10</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Car className="w-3 h-3 sm:w-4 sm:h-4 text-zinc-500 flex-shrink-0" />
-                                  <span className="text-zinc-400">Commute: {neighborhood.commuteScore.toFixed(1)}/10</span>
+                                  <span className="text-zinc-400">Commute: {typeof neighborhood.commuteScore === 'number' ? neighborhood.commuteScore.toFixed(1) : 'N/A'}/10</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-zinc-500 flex-shrink-0" />
-                                  <span className="text-zinc-400">Walk Score: {neighborhood.walkabilityScore}/100</span>
+                                  <span className="text-zinc-400">Walk Score: {typeof neighborhood.walkabilityScore === 'number' ? neighborhood.walkabilityScore : 'N/A'}/100</span>
                                 </div>
                               </div>
 

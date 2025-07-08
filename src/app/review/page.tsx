@@ -65,15 +65,6 @@ const scaleIn = {
   animate: { opacity: 1, scale: 1 },
   transition: { duration: 0.6, ease: "easeOut" }
 };
-interface Review {
-  id: number;
-  area: string;
-  content: string;
-  authorId: string | null;
-  createdAt: string;
-  category: string;
-  rating: number;
-}
 import { useUser } from '@clerk/nextjs';
 export default function ReviewAreaPage() {
   const [area, setArea] = useState('');
@@ -214,37 +205,6 @@ export default function ReviewAreaPage() {
     fetchRatings();
   }, [area, submitSuccess]);
   const handleSearch = async () => {
-  if (!area.trim()) {
-    setError('Please enter an area name');
-    return;
-  }
-  setLoading(true);
-  setError(null);
-  setReviews([]);
-  try {
-    const res = await fetch(`/api/reviews?area=${encodeURIComponent(area)}`);
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Failed to fetch reviews');
-    }
-    const apiReviews = await res.json();
-    // Map API response to frontend model
-    const mapped = (Array.isArray(apiReviews) ? apiReviews : []).map((r: any) => ({
-      id: r.id,
-      area: r.neighborhood?.name || area,
-      content: r.content,
-      authorId: r.user?.name || 'Anonymous',
-      createdAt: r.createdAt,
-      category: r.category,
-      rating: r.rating
-    }));
-    setReviews(mapped);
-  } catch (err: any) {
-    setError(err.message || 'Failed to fetch reviews');
-  } finally {
-    setLoading(false);
-  }
-}
     if (!area.trim()) {
       setError('Please enter an area name');
       return;
@@ -252,33 +212,29 @@ export default function ReviewAreaPage() {
     setLoading(true);
     setError(null);
     setReviews([]);
-    // Simulate loading for better UX
-    setTimeout(() => {
-      // Filter demo reviews that mention the searched area or show random selection
-      const relevantReviews = demoReviews.filter(review => 
-        review.area.toLowerCase().includes(area.toLowerCase()) ||
-        review.content.toLowerCase().includes(area.toLowerCase())
-      );
-      
-      // If no relevant reviews, show a random selection
-      const reviewsToShow = relevantReviews.length > 0 
-        ? relevantReviews 
-        : demoReviews.sort(() => Math.random() - 0.5).slice(0, 3);
-      
-      // Add some dynamic content based on searched area
-      const dynamicReview = {
-        id: Date.now(),
-        area: area,
-        content: `Recently moved to ${area} and loving it! The community is welcoming and there's always something to do. Great location with good access to amenities.`,
-        authorId: "Community Member",
-        createdAt: new Date().toISOString().split('T')[0],
-        category: "safety",
-        rating: Math.floor(Math.random() * 2) + 4 // 4 or 5 stars
-      };
-      
-      setReviews([dynamicReview, ...reviewsToShow]);
+    try {
+      const res = await fetch(`/api/reviews?area=${encodeURIComponent(area)}`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to fetch reviews');
+      }
+      const apiReviews = await res.json();
+      // Map API response to frontend model
+      const mapped = (Array.isArray(apiReviews) ? apiReviews : []).map((r: any) => ({
+        id: r.id,
+        area: r.neighborhood?.name || area,
+        content: r.content,
+        authorId: r.user?.name || 'Anonymous',
+        createdAt: r.createdAt,
+        category: r.category,
+        rating: r.rating
+      }));
+      setReviews(mapped);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch reviews');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   // Submit Review Handler (must be inside the component to access state)
@@ -329,7 +285,7 @@ export default function ReviewAreaPage() {
   };
 
   // Utility to render stars for ratings
-  const renderStars = (rating: number, interactive = false, size: 'sm' | 'md' | 'lg' = 'md') => {
+  const renderStars = (rating: number, interactive = false, size: string = 'md') => {
     const sizeClass = size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-6 h-6' : 'w-4 h-4';
     return (
       <div className="flex items-center">
@@ -344,154 +300,62 @@ export default function ReviewAreaPage() {
     );
   };
 
-          <motion.div
-            key="reviews"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-4 sm:space-y-6"
-          >
-            {/* Average Ratings Summary */}
-            {avgRatings && (
-              <AverageRatingBox 
-                area={area} 
-                avgRatings={avgRatings} 
-              />
-            )}
-            {/* Individual Reviews */}
-            <ReviewList 
-              reviews={reviews} 
-              user={user} 
-              handleEditReview={handleEditReview} 
-              handleDeleteReview={handleDeleteReview} 
-            />
-          </motion.div>
-        ) : area ? (
-          <motion.div
-            key="no-reviews"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center py-12"
-          >
-            <MessageSquare className="w-8 h-8 sm:w-12 sm:h-12 text-zinc-400 mx-auto mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-white mb-2">No Reviews Yet</h3>
-            <p className="text-zinc-400 mb-4 text-sm sm:text-base">
-              Be the first to review {area}!
-            </p>
-            <Button 
-              onClick={() => document.getElementById('review-form')?.scrollIntoView({ behavior: 'smooth' })}
-              variant="outline"
-              className="border-zinc-600 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs sm:text-sm"
-            >
-              Write First Review
-              <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
-            </Button>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center py-12"
-          >
-            <Search className="w-8 h-8 sm:w-12 sm:h-12 text-zinc-400 mx-auto mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-white mb-2">Search for Reviews</h3>
-            <p className="text-zinc-400 text-sm sm:text-base">
-              Enter a neighborhood name to see what the community is saying.
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </CardContent>
-  </Card>
-</motion.div>
-                          </motion.div>
-                        )}
-                        {/* Individual Reviews */}
-                        <div className="space-y-3 sm:space-y-4">
-                          {reviews.map((review, index) => (
-                            <motion.div
-                              key={review.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              className="p-4 sm:p-6 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors bg-zinc-800/50"
-                            >
-                              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3">
-                                <div className="mb-2 sm:mb-0">
-                                  <div className="flex flex-col xs:flex-row xs:items-center gap-2 mb-1">
-                                    <span className="font-medium text-white text-sm sm:text-base">
-                                      {review.authorId || 'Anonymous'}
-                                    </span>
-                                    <Badge variant="outline" className="bg-zinc-900/80 border-zinc-700 text-zinc-300 text-xs w-fit">
-                                      {review.category}
-                                    </Badge>
-                                  </div>
-                                  <div className="flex flex-col xs:flex-row xs:items-center gap-2">
-                                    {renderStars(review.rating, false, 'sm')}
-                                    <span className="text-xs sm:text-sm text-zinc-400">
-                                      {new Date(review.createdAt).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              <p className="text-zinc-300 leading-relaxed text-sm sm:text-base">{review.content}</p>
-                              {user && review.authorId === user.id && (
-                                <div className="flex gap-2 mt-2">
-                                  <Button size="sm" variant="outline" onClick={() => {
-                                    const newContent = prompt('Edit your review:', review.content);
-                                    if (newContent !== null) handleEditReview(review.id, newContent, review.rating, review.category);
-                                  }}>Edit</Button>
-                                  <Button size="sm" variant="destructive" onClick={() => handleDeleteReview(review.id)}>Delete</Button>
-                                </div>
-                              )}
-                            </motion.div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    ) : area ? (
-                      <motion.div
-                        key="no-reviews"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="text-center py-12"
-                      >
-                        <MessageSquare className="w-8 h-8 sm:w-12 sm:h-12 text-zinc-400 mx-auto mb-4" />
-                        <h3 className="text-base sm:text-lg font-medium text-white mb-2">No Reviews Yet</h3>
-                        <p className="text-zinc-400 mb-4 text-sm sm:text-base">
-                          Be the first to review {area}!
-                        </p>
-                        <Button 
-                          onClick={() => document.getElementById('review-form')?.scrollIntoView({ behavior: 'smooth' })}
-                          variant="outline"
-                          className="border-zinc-600 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs sm:text-sm"
-                        >
-                          Write First Review
-                          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
-                        </Button>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="empty"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="text-center py-12"
-                      >
-                        <Search className="w-8 h-8 sm:w-12 sm:h-12 text-zinc-400 mx-auto mb-4" />
-                        <h3 className="text-base sm:text-lg font-medium text-white mb-2">Search for Reviews</h3>
-                        <p className="text-zinc-400 text-sm sm:text-base">
-                          Enter a neighborhood name to see what the community is saying.
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </CardContent>
-              </Card>
-            </motion.div>
+  return (
+    <div className="flex flex-col h-full">
+      <section className="flex-grow">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row">
+            <div className="md:w-1/2">
+              <motion.div
+                key="reviews"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4 sm:space-y-6"
+              >
+                {/* Average Ratings Summary */}
+                {avgRatings && (
+                  <AverageRatingBox 
+                    avgRatings={avgRatings} 
+                    categories={categories}
+                  />
+                )}
+                {/* Individual Reviews */}
+                <ReviewList 
+                  reviews={reviews} 
+                  onEdit={handleEditReview} 
+                  onDelete={handleDeleteReview} 
+                />
+              </motion.div>
+            </div>
+            <div className="md:w-1/2">
+              <motion.div
+                key="review-form"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="p-4 sm:p-6 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors bg-zinc-800/50"
+              >
+                <h2 className="text-base sm:text-lg font-medium text-white mb-4">Write a Review</h2>
+                <ReviewForm
+                  area={area}
+                  authorName={authorName}
+                  setAuthorName={setAuthorName}
+                  rating={rating}
+                  setRating={setRating}
+                  category={category}
+                  setCategory={setCategory}
+                  reviewContent={reviewContent}
+                  setReviewContent={setReviewContent}
+                  onSubmit={handleSubmitReview}
+                  categories={categories}
+                  renderStars={renderStars}
+                  submitting={submitting}
+                  submitError={submitError}
+                  submitSuccess={submitSuccess}
+                />
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>
