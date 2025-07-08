@@ -1,8 +1,0 @@
--- CreateTable
-CREATE TABLE "Review" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "area" TEXT NOT NULL,
-    "content" TEXT NOT NULL,
-    "authorId" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
