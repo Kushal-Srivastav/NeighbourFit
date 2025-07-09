@@ -190,7 +190,7 @@ const Footer = () => {
             <div className="flex items-center gap-1">
               <span>Made with</span>
               <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500 fill-current" />
-              <span>in San Francisco</span>
+              <span>by Kushal</span>
             </div>
           </div>
           
